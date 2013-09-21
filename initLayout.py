@@ -11,75 +11,73 @@ class initLayout(wx.Frame):
         self.panel = wx.Panel(self, wx.ID_ANY)
 
         topSizer = wx.BoxSizer(wx.VERTICAL)
+        # outerbag sizer for 2 columns 'Control' and 'Progress'
         outerbagSizer = wx.GridBagSizer(hgap = 5, vgap = 5)
-        box = wx.StaticBox(self.panel, label = 'Degaussing Parameters')
-        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
-        bagSizer = wx.GridBagSizer(hgap = 5, vgap = 5)
+        controlbbox = wx.StaticBox(self.panel, label = 'Control')
+        controlbox = wx.StaticBoxSizer(controlbbox, wx.VERTICAL)
+        progressbbox = wx.StaticBox(self.panel, label = 'Progress')
+        progressbox = wx.StaticBoxSizer(progressbbox, wx.VERTICAL)
 
-        sampleList = ['Dev0', 'Dev1', 'Dev2']
+        # two GridBagSizers for control and progess with two spacers in (0,0)
+        controlbag = wx.GridBagSizer(hgap = 5, vgap = 5)
+        progressbag = wx.GridBagSizer(hgap = 5, vgap = 5)
+        controlbag.Add((380,100), pos = (0,0), flag = wx.EXPAND)
+        progressbag.Add((380,100), pos = (0,0), flag = wx.EXPAND)
 
-        labelDev = wx.StaticText(self.panel, wx.ID_ANY,'Device')
-        self.inputDev = wx.ComboBox(self.panel, wx.ID_ANY, 'Dev0/',
-                wx.DefaultPosition, (200, -1), sampleList, wx.CB_DROPDOWN)
-        self.dev = self.inputDev.GetValue()
+        # create start button and add them to controlbag
+        startbuttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        startbtn = wx.Button(self.panel, label = 'Start', size = (200,100))
+        startbuttonSizer.Add((100,100), wx.ALIGN_LEFT)
+        startbuttonSizer.Add(startbtn,flag = wx.EXPAND)
+        startbuttonSizer.Add((-1,100), wx.ALIGN_RIGHT)
+        controlbag.Add(startbuttonSizer, pos = (1,0), flag = wx.EXPAND)
+        controlbag.AddGrowableRow(1,0)
+
+        controlbag.Add((-1,50), pos = (2,0), flag = wx.EXPAND)
+
+        # create abort button and add them to controlbag
+        abortbuttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        abortbtn = wx.Button(self.panel, label = 'Abort', size = (200,100))
+        abortbuttonSizer.Add((100,100), wx.ALIGN_LEFT)
+        abortbuttonSizer.Add(abortbtn,flag = wx.EXPAND)
+        abortbuttonSizer.Add((-1,100), wx.ALIGN_RIGHT)
+        controlbag.Add(abortbuttonSizer, pos = (3,0), flag = wx.EXPAND)
+        controlbag.AddGrowableRow(3)
+
         
-        self.rb = wx.RadioBox(self.panel, wx.ID_ANY, 'Mode', wx.DefaultPosition,
-                wx.DefaultSize, ['Auto', 'Manual'], 2, wx.RA_SPECIFY_COLS)
-        self.rb.SetSelection(1)
-        self.mode = "manual"
+        # create overall progress bar and add to progressbag
+        self.overalllabel = wx.StaticText(self.panel, wx.ID_ANY, "Overall progress", size=(-1,70), style=wx.ALIGN_BOTTOM)
+        progressbag.Add(self.overalllabel, pos = (1,0), flag = wx.ALIGN_LEFT|wx.EXPAND)
+        progressbag.AddGrowableRow(1)
+        self.overallbar = wx.Gauge(self.panel, range = 100, size = (380, 30))
+        self.overallbar.SetValue(20)
+        progressbag.Add(self.overallbar, pos = (2,0))
 
-        coilList = ['A-X', 'A-Y', 'A-Z', 'I-X', 'I-Y', 'I-Z', "other"]
-        self.currentincoils = collections.OrderedDict([("A-X", 4), ("A-Y", 3), ("A-Z",
-            3.5), ("I-X", 9), ("I-Y", 8.7), ("I-Z", 9.1), ("other", 0)])
+        # spacer in between progress bars
+        progressbag.Add((-1,40), pos = (3,0), flag = wx.EXPAND)
+        progressbag.AddGrowableRow(3)
+        # create overall progress bar and add to progressbag
+        self.currentlabel = wx.StaticText(self.panel, wx.ID_ANY, "Current progress")
+        progressbag.Add(self.currentlabel, pos = (4,0), flag = wx.ALIGN_LEFT)
+        progressbag.AddGrowableRow(4)
+        self.currentbar = wx.Gauge(self.panel, range = 100, size = (380, 30))
+        self.currentbar.SetValue(70)
+        progressbag.Add(self.currentbar, pos = (5,0))
+        progressbag.Add((-1,-1), pos = (6,0), flag = wx.EXPAND)
+
+
+        # add them to their boxes
+        controlbox.Add(controlbag, wx.EXPAND)
+        progressbox.Add(progressbag, wx.EXPAND)
         
-        self.coilselector = wx.ComboBox(self.panel, wx.ID_ANY, 'A-X',
-                wx.DefaultPosition, (200,-1), coilList, wx.CB_READONLY)
+        # add boxes to outerbag
+        outerbagSizer.Add(controlbox, pos = (0,0), flag=wx.ALIGN_CENTER_VERTICAL, border = 5)
+        outerbagSizer.Add(progressbox, pos = (0,1), flag=wx.ALIGN_CENTER_VERTICAL, border = 5)
 
-        bagSizer.Add(labelDev, pos = (0,0), flag = wx.ALIGN_CENTER_VERTICAL, border = 5)
-        bagSizer.Add(self.inputDev, pos = (0,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 5)
-
-        bagSizer.Add(self.rb, pos = (1,0), span = (2,2), flag =
-                wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND)
-        bagSizer.AddGrowableCol(1,1)
-
-        self.labelCoil = wx.StaticText(self.panel, wx.ID_ANY, 'Coil')
-        self.labelAmp = wx.StaticText(self.panel, wx.ID_ANY, 'Amp')
-        self.textAmp = wx.TextCtrl(self.panel)
-        self.textAmp.SetValue(str(self.currentincoils[self.coilselector.GetValue()]))
-        self.textAmp.Show()
-        self.labelAmp.Show()
-
-        bagSizer.Add(self.labelCoil, pos = (3,0), flag =
-                wx.ALIGN_CENTER_VERTICAL, border = 5)
-        bagSizer.Add(self.coilselector, pos = (3,1), span = (1,2), flag =
-                wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 5)
-        self.coilselector.Enable(True)
-
-        bagSizer.Add(self.labelAmp, pos = (5,0), flag =
-                wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 5)
-        bagSizer.Add(self.textAmp, pos = (5,1), flag =
-                wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 5)
-
-        textctrl = wx.TextCtrl(self.panel, wx.ID_ANY, '')
-
-        boxSizer.Add(bagSizer, wx.EXPAND)
-        outerbagSizer.Add((300,0), pos = (0,0), flag = wx.EXPAND)
-        outerbagSizer.Add(boxSizer, pos = (1,0), span = (7,1), flag = wx.EXPAND)
-        outerbagSizer.Add(textctrl, pos = (1,1), flag = wx.EXPAND)
-        outerbagSizer.AddGrowableCol(1,1)
-
-        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        okbutton = wx.Button(self.panel, label = "Ok")
-        cancelbutton = wx.Button(self.panel, label = "cancel")
-        buttonSizer.Add(okbutton, 0, wx.ALIGN_RIGHT, 5)
-        buttonSizer.Add(cancelbutton, 0, wx.ALIGN_RIGHT, 5)
-        
-        topSizer.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        topSizer.Add(outerbagSizer, 0, wx.ALL|wx.EXPAND, 5)
-        topSizer.Add(buttonSizer, 0, wx.EXPAND, 5)
-
+        # add outerbag to top
+        topSizer.Add(outerbagSizer, wx.EXPAND)
         self.panel.SetSizer(topSizer)
-        self.SetSizeHints(600, 350, 700, 500)
+        self.SetSizeHints(800, 600, 800, 600)
 
         self.Centre()
         self.Show()
