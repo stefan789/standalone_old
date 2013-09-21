@@ -6,7 +6,7 @@ class initLayout(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, wx.ID_ANY, 'Frame')
 
-        self.__initMenu__()
+#        self.__initMenu__()
 
         self.panel = wx.Panel(self, wx.ID_ANY)
 
@@ -26,9 +26,9 @@ class initLayout(wx.Frame):
 
         # create start button and add them to controlbag
         startbuttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        startbtn = wx.Button(self.panel, label = 'Start', size = (200,123))
+        self.startbtn = wx.Button(self.panel, label = 'Start', size = (200,123))
         startbuttonSizer.Add((-1,-1), wx.ALIGN_LEFT|wx.EXPAND)
-        startbuttonSizer.Add(startbtn)
+        startbuttonSizer.Add(self.startbtn)
         startbuttonSizer.Add((-1,-1), wx.ALIGN_RIGHT|wx.EXPAND)
         controlbag.Add(startbuttonSizer, pos = (1,0), flag = wx.EXPAND)
         controlbag.AddGrowableRow(1,0)
@@ -37,9 +37,9 @@ class initLayout(wx.Frame):
 
         # create abort button and add them to controlbag
         abortbuttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        abortbtn = wx.Button(self.panel, label = 'Abort', size = (200,123))
+        self.abortbtn = wx.Button(self.panel, label = 'Abort', size = (200,123))
         abortbuttonSizer.Add((-1,-1), wx.ALIGN_LEFT|wx.EXPAND)
-        abortbuttonSizer.Add(abortbtn,flag = wx.EXPAND)
+        abortbuttonSizer.Add(self.abortbtn,flag = wx.EXPAND)
         abortbuttonSizer.Add((-1,-1), wx.ALIGN_RIGHT|wx.EXPAND)
         controlbag.Add(abortbuttonSizer, pos = (3,0), flag = wx.EXPAND)
         controlbag.AddGrowableRow(3)
