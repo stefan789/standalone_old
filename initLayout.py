@@ -43,6 +43,7 @@ class initLayout(wx.Frame):
         abortbuttonSizer.Add((-1,-1), wx.ALIGN_RIGHT|wx.EXPAND)
         controlbag.Add(abortbuttonSizer, pos = (3,0), flag = wx.EXPAND)
         controlbag.AddGrowableRow(3)
+        controlbag.Add((-1,100), pos = (4,0))
 
         
         # create overall progress bar and add to progressbag
@@ -63,6 +64,7 @@ class initLayout(wx.Frame):
         self.currentbar.SetValue(70)
         progressbag.Add(self.currentbar, pos = (5,0), flag = wx.EXPAND)
         progressbag.Add((-1,-1), pos = (6,0))
+        progressbag.Add((-1,182), pos = (7,0))
 
 
         # add them to their boxes
