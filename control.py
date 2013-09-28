@@ -5,14 +5,17 @@ class control():
     def __init__(self, klasse):
 
         self.gui = klasse
+        self.main = klasse.mainwin
 
-        self.gui.Bind(wx.EVT_BUTTON, self.onStart, self.gui.startbtn)
-        self.gui.Bind(wx.EVT_BUTTON, self.onAbort, self.gui.abortbtn)
 
-        self.overallbar = self.gui.overallbar
-        self.overalltimer = wx.Timer(self.gui, 999)
-        self.currentbar = self.gui.currentbar
-        self.currenttimer = wx.Timer(self.gui, 1000)
+        self.main.Bind(wx.EVT_BUTTON, self.onStart, self.main.startbtn)
+        self.main.Bind(wx.EVT_BUTTON, self.onAbort, self.main.abortbtn)
+        self.main.Bind(wx.EVT_BUTTON, self.onAdv, self.main.advbtn)
+
+        self.overallbar = self.main.overallbar
+        self.overalltimer = wx.Timer(self.main, 999)
+        self.currentbar = self.main.currentbar
+        self.currenttimer = wx.Timer(self.main, 1000)
 
 
     def on_overalltimer(self, e):
@@ -22,7 +25,7 @@ class control():
             self.overallcount = 0
             self.overalltimer.Stop()
             self.overallbar.SetValue(100)
-            dia = wx.MessageDialog(self.gui.panel, "Done", "Info", wx.OK)
+            dia = wx.MessageDialog(self.main.panel, "Done", "Info", wx.OK)
             dia.ShowModal()
 
     def on_currenttimer(self, e):
@@ -35,11 +38,11 @@ class control():
 
 
     def onAbort(self, e):
-        dlg = wx.MessageDialog(self.gui.panel, "Do you really want to quit the app?", "Confirm Exit", wx.OK|wx.CANCEL|wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self.main.panel, "Do you really want to quit the app?", "Confirm Exit", wx.OK|wx.CANCEL|wx.ICON_QUESTION)
         result = dlg.ShowModal()
         dlg.Destroy()
         if result == wx.ID_OK:
-            self.gui.Destroy()
+            self.main.Destroy()
 
     def onStart(self, e):
         # dauer hier berechnet, nachher aus parametern von dodegauss
@@ -48,10 +51,19 @@ class control():
         self.duration = self.nrCoils * self.coilduration
         self.count = 0
         self.overallcount = 0
-        self.gui.Bind(wx.EVT_TIMER, self.on_overalltimer, self.overalltimer,
+        self.main.Bind(wx.EVT_TIMER, self.on_overalltimer, self.overalltimer,
                 999)
-        self.gui.Bind(wx.EVT_TIMER, self.on_currenttimer, self.currenttimer,
+        self.main.Bind(wx.EVT_TIMER, self.on_currenttimer, self.currenttimer,
                 1000)
         self.currenttimer.Start(100)
         self.overalltimer.Start(100)
+
+    def onAdv(self, e):
+        self.gui.createAdvWindow()
+        self.adv = self.gui.advwin
+        self.main.Bind(wx.EVT_BUTTON, self.onAdvOk, self.adv.okbutton)
+        self.adv.Show()
+
+    def onAdvOk(self, e):
+        self.adv.Destroy()
 
