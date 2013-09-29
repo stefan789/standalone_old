@@ -82,11 +82,39 @@ class control():
         self.gui.createAdvWindow()
         self.adv = self.gui.advwin
         self.main.Bind(wx.EVT_BUTTON, self.onAdvOk, self.adv.okbutton)
+        self.main.Bind(wx.EVT_BUTTON, self.onAdvCancel, self.adv.cancelbutton)
+        self.main.Bind(wx.EVT_COMBOBOX, self.coilselection, self.adv.degaP.coilselector)
         self.adv.Show()
 
     def onAdvOk(self, e):
         """
         called on click on ok button in advanced settings window
         """
+
         self.adv.Destroy()
+
+    def onAdvCancel(self, e):
+        """
+        called on click on cancel button in advanced settings window
+        """
+        self.adv.Destroy()
+
+    def coilselection(self, e):
+        choice = self.adv.degaP.coilselector.GetValue()
+        if choice != "All":
+            self.adv.degaP.textAmp.SetValue(str(self.adv.degaP.currentincoils[choice]))
+        if choice == "All":
+            pop = wx.TextEntryDialog(self.adv.degaP.panel, "Enter Amplitude for ALL coils: ", "Amplitude", "")
+            answ = pop.ShowModal()
+            if answ == wx.ID_OK:
+                nr = pop.GetValue()
+            else:
+                nr = "No Amplitude"
+            try:
+                isfloat = float(nr)
+                self.adv.degaP.textAmp.SetValue(str(nr))
+            except ValueError:
+                self.adv.degaP.textAmp.SetValue("No Amplitude set")
+                self.adv.degaP.textAmp.SetFocus()
+            pop.Destroy()
 
