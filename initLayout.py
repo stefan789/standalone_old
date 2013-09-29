@@ -24,8 +24,8 @@ class initLayout(wx.Frame):
         self.mainwin = mainWindow.mainWindow(self)
         self.mainwin.Show()
 
-    def createAdvWindow(self):
-        self.advwin = advWindow.advWindow(self.mainwin)
+    def createAdvWindow(self, coils):
+        self.advwin = advWindow.advWindow(self.mainwin, coils)
             
 
 if __name__ == '__main__':
