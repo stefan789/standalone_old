@@ -12,9 +12,9 @@ class advWindow(wx.Frame):
         
         nb = wx.Notebook(panel)
         self.degaP = advDegaPanel.advDegaPanel(nb, coils)
-        nb.AddPage(self.degaP.panel, "Parameters")
+        nb.AddPage(self.degaP.panel, "Parameters  ")
         self.coilP = advCoilPanel.advCoilPanel(nb)
-        nb.AddPage(self.coilP.panel, "Coils")
+        nb.AddPage(self.coilP.panel, "Coils  ")
 
         topSizer.Add(nb, flag = wx.EXPAND|wx.ALL, border = 5)
 

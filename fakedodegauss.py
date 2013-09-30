@@ -23,7 +23,6 @@ class Degausser():
     def createWaveform(self, amplitude, frequency, offset, duration, keeptime, sampleRate):
         self.sampleRate = sampleRate
         t = numpy.arange(0, duration + 1.0/sampleRate, 1.0/self.sampleRate)
-        print repr(t)
 #        x = numpy.piecewise(t, [self.test(t,keeptime,True), self.test(t, keeptime, False)], 
 #                [self.keep(amp, freq, offset, duration, keeptime, sampleRate, t), 
 #                self.decrease(amp, freq, offset, duration, keeptime, sampleRate, t)])
@@ -41,4 +40,4 @@ class Degausser():
 
 if __name__ == "__main__":
     gaus = Degausser("Dev0", 0)
-    gaus.createWaveform(1,1,0,10.0,1,10000)
+    gaus.createWaveform(1,1,0,30.0,1,10000)

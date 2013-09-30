@@ -1,22 +1,25 @@
 import wx
+import copy
 import collections
 
 class control():
     def __init__(self, klasse):
-
         self.gui = klasse
         self.main = klasse.mainwin
 
         self.coils = collections.OrderedDict([
-            ("A-X", dict([('Amp', 4),('Freq', 10),('Dur', 110),('Keep', 19) ])), 
-            ("A-Y", dict([('Amp', 3),('Freq', 11),('Dur', 100),('Keep', 18) ])), 
-            ("A-Z", dict([('Amp', 3.5),('Freq', 12),('Dur', 90),('Keep', 17) ])),       
-            ("I-X", dict([('Amp', 9.5),('Freq', 13),('Dur', 80),('Keep', 16) ])),
-            ("I-Y", dict([('Amp', 8.7),('Freq', 14),('Dur', 70),('Keep', 15) ])), 
-            ("I-Z", dict([('Amp', 9.1),('Freq', 15),('Dur', 60),('Keep', 14) ])), 
-            ("All", dict([('Amp', 0),('Freq', 16),('Dur', 50),('Keep', 13) ]))])
+            ("A-X", dict([('Amp', 4),('Freq', 10),('Dur', 110),('Keep', 19)])), 
+            ("A-Y", dict([('Amp', 3),('Freq', 11),('Dur', 100),('Keep', 18)])), 
+            ("A-Z", dict([('Amp', 3.5),('Freq', 12),('Dur', 90),('Keep', 17)])),       
+            ("I-X", dict([('Amp', 9.5),('Freq', 13),('Dur', 80),('Keep', 16)])),
+            ("I-Y", dict([('Amp', 8.7),('Freq', 14),('Dur', 70),('Keep', 15)])), 
+            ("I-Z", dict([('Amp', 9.1),('Freq', 15),('Dur', 60),('Keep', 14)])), 
+            ("All", dict([('Amp', 0),('Freq', 16),('Dur', 50),('Keep', 13)])),
+            ("Offset", 0),
+            ("Device", "Dev0")])
 
-        self.usedcoils = self.coils
+        self.usedcoils = copy.deepcopy(self.coils)
+        self.tmpcoils = copy.deepcopy(self.coils)
 
         # bind buttons in mainwindow
         self.main.Bind(wx.EVT_BUTTON, self.onStart, self.main.startbtn)
@@ -90,9 +93,7 @@ class control():
         """ 
         creates advanced settings window
         """
-        self.tmpcoils = self.usedcoils
         self.gui.createAdvWindow(self.tmpcoils)
-        print self.tmpcoils
         self.adv = self.gui.advwin
         self.main.Bind(wx.EVT_BUTTON, self.onAdvOk, self.adv.okbutton)
         self.main.Bind(wx.EVT_BUTTON, self.onAdvCancel, self.adv.cancelbutton)
@@ -103,20 +104,27 @@ class control():
         self.main.Bind(wx.EVT_TEXT, self.changeDur, self.adv.degaP.textDur)
         self.main.Bind(wx.EVT_TEXT, self.changeKeep, self.adv.degaP.textKeep)
         self.main.Bind(wx.EVT_TEXT, self.changeOffset, self.adv.degaP.textOffset)
+        self.main.Bind(wx.EVT_COMBOBOX, self.deviceselection, self.adv.degaP.inputDev)
         self.adv.Show()
 
     def onAdvReset(self, e):
-        print self.coils
-        print self.usedcoils
-        print self.tmpcoils
-        self.usedcoils = self.coils
+        self.tmpcoils = copy.deepcopy(self.coils)
+        choice = self.adv.degaP.coilselector.GetValue()
+        self.adv.degaP.updateCoilSet(self.tmpcoils)
+        self.adv.degaP.textAmp.SetValue(str(self.adv.degaP.coils[choice]['Amp']))
+        self.adv.degaP.textFreq.SetValue(str(self.adv.degaP.coils[choice]['Freq']))
+        self.adv.degaP.textDur.SetValue(str(self.adv.degaP.coils[choice]['Dur']))
+        self.adv.degaP.textKeep.SetValue(str(self.adv.degaP.coils[choice]['Keep']))
+        self.adv.degaP.textOffset.SetValue(str(self.adv.degaP.coils['Offset']))
+        self.adv.degaP.inputDev.SetValue(str(self.adv.degaP.coils['Device']))
 
 
     def onAdvOk(self, e):
         """
         called on click on ok button in advanced settings window
         """
-        self.usedcoils = self.tmpcoils
+        self.usedcoils = copy.deepcopy(self.tmpcoils)
+        print self.usedcoils
         self.adv.Destroy()
 
     def onAdvCancel(self, e):
@@ -132,8 +140,6 @@ class control():
     def changeFreq(self, e):
         choice = self.adv.degaP.coilselector.GetValue()
         self.tmpcoils[choice]['Freq'] = self.adv.degaP.textFreq.GetValue()
-        print self.tmpcoils
-        print self.usedcoils
 
     def changeDur(self, e):
         choice = self.adv.degaP.coilselector.GetValue()
@@ -144,12 +150,15 @@ class control():
         self.tmpcoils[choice]['Keep'] = self.adv.degaP.textKeep.GetValue()
 
     def changeOffset(self, e):
-        pass
+        self.tmpcoils['Offset'] = self.adv.degaP.textOffset.GetValue()
+
+    def changeDev(self, e):
+        self.tmpcoils['Device'] = self.adv.degaP.textOffset.GetValue()
 
     def coilselection(self, e):
         choice = self.adv.degaP.coilselector.GetValue()
         if choice != "All":
-            self.adv.degaP.textAmp.SetValue(str(self.usedcoils[choice]['Amp']))
+            self.adv.degaP.textAmp.SetValue(str(self.adv.degaP.coils[choice]['Amp']))
             self.adv.degaP.textFreq.SetValue(str(self.adv.degaP.coils[choice]['Freq']))
             self.adv.degaP.textDur.SetValue(str(self.adv.degaP.coils[choice]['Dur']))
             self.adv.degaP.textKeep.SetValue(str(self.adv.degaP.coils[choice]['Keep']))
@@ -168,3 +177,6 @@ class control():
                 self.adv.degaP.textAmp.SetFocus()
             pop.Destroy()
 
+    def deviceselection(self, e):
+        choice = self.adv.degaP.inputDev.GetValue()
+        self.tmpcoils['Device'] = choice

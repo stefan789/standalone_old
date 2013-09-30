@@ -13,7 +13,7 @@ class advDegaPanel(wx.Panel):
         # device section 
         labelDev = wx.StaticText(self.panel, -1, "Device")
         deviceList = ["Dev0", "Dev1", "Dev2"]
-        self.inputDev = wx.ComboBox(self.panel, -1, "Dev0", wx.DefaultPosition, (200,-1), deviceList, wx.CB_DROPDOWN)
+        self.inputDev = wx.ComboBox(self.panel, -1, self.coils['Device'], wx.DefaultPosition, (200,-1), deviceList, wx.CB_DROPDOWN)
         bagSizer.Add((-1,10), pos = (0,0))
         bagSizer.Add(labelDev, pos = (1,0), flag = wx.ALIGN_CENTER_VERTICAL, border = 5)
         bagSizer.Add(self.inputDev, pos = (1,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 5)
@@ -21,7 +21,7 @@ class advDegaPanel(wx.Panel):
         # offset section
         labelOffset = wx.StaticText(self.panel, -1, "Offset")
         self.textOffset = wx.TextCtrl(self.panel)
-        self.textOffset.SetValue(str(0))
+        self.textOffset.SetValue(str(self.coils["Offset"]))
 
         bagSizer.Add(labelOffset, pos = (2,0), flag = wx.ALIGN_CENTER_VERTICAL, border = 5)
         bagSizer.Add(self.textOffset, pos = (2,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 5)
@@ -31,7 +31,7 @@ class advDegaPanel(wx.Panel):
 
         # Coil selector
         labelCoil = wx.StaticText(self.panel, -1, "Coil")
-        self.coilselector = wx.ComboBox(self.panel, -1, "A-X", wx.DefaultPosition, (200,-1), coils.keys(), wx.CB_READONLY)
+        self.coilselector = wx.ComboBox(self.panel, -1, "A-X", wx.DefaultPosition, (200,-1), coils.keys()[:-2], wx.CB_READONLY)
 
         bagSizer.Add(labelCoil, pos = (4,0), flag = wx.ALIGN_CENTER_VERTICAL, border = 5)
         bagSizer.Add(self.coilselector, pos = (4,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 5)
@@ -75,4 +75,3 @@ class advDegaPanel(wx.Panel):
 
     def updateCoilSet(self, coils):
         self.coils = coils
-        self.textAmp.SetValue(str(self.coils["A-X"]['Amp']))
