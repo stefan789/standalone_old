@@ -16,7 +16,7 @@ class control():
             ("I-Z", dict([('Amp', 9.1),('Freq', 15),('Dur', 60),('Keep', 14)])), 
             ("All", dict([('Amp', 0),('Freq', 16),('Dur', 50),('Keep', 13)])),
             ("Offset", 0),
-            ("Device", "Dev0")])
+            ("Device", "Dev1")])
 
         self.usedcoils = copy.deepcopy(self.coils)
         self.tmpcoils = copy.deepcopy(self.coils)
