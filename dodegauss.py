@@ -1,20 +1,42 @@
+﻿# -*- coding: UTF-8 -*-
 import time
 import numpy
 import threading
 import matplotlib.pyplot as plt
+import ctypes
+nidaq = ctypes.windll.nicaiu
 
-class Degausser(threading.Thread):
-    def __init__(self, device, chnnr):
-        '''
-        initialize NI DAQ Driver, create Task and Channel
-        '''
+int32 = ctypes.c_long
+uInt32 = ctypes.c_ulong
+uInt64 = ctypes.c_ulonglong
+float64 = ctypes.c_double
+bool32 = uInt32
+TaskHandle = uInt32
+
+DAQmx_Val_Cfg_Default = int32(-1)
+DAQmx_Val_Volts = 10348
+DAQmx_Val_Rising = 10280
+DAQmx_Val_FiniteSamps = 10178
+DAQmx_Val_ContSamps = 10123
+DAQmx_Val_GroupByChannel = 0
+
+class WaveformThread(threading.Thread):
+    def __init__(self, device, chnnr, waveform, samplerate, time):
+        self.running = True
+        self.device = device
+        self.chnnr = chnnr
+        self.data = waveform
+        self.sampleRate = samplerate
+        self.periodLength = len( self.data )
+        self.time = time
         self.taskHandle = TaskHandle( 0 )
-        dev = str(device) + "/" + "ao" + str(chnnr)
+        dev = str(self.device) + "/" + "ao" + str(self.chnnr)
         self.CHK(nidaq.DAQmxCreateTask("", ctypes.byref( self.taskHandle )))
         self.CHK(nidaq.DAQmxCreateAOVoltageChan( self.taskHandle, dev, "", float64(-10.0), float64(10.0), DAQmx_Val_Volts, None))
+        self.CHK(nidaq.DAQmxCfgSampClkTiming( self.taskHandle, "", float64(self.sampleRate), DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, uInt64(self.periodLength)))
+        self.CHK(nidaq.DAQmxWriteAnalogF64( self.taskHandle, int32(self.periodLength), 0, float64(-1), DAQmx_Val_GroupByChannel, self.data.ctypes.data, None, None))
         threading.Thread.__init__(self)
-
-
+    
     def CHK(self, err):
         '''a simple error checking routine'''
         if err < 0:
@@ -27,36 +49,45 @@ class Degausser(threading.Thread):
             buf = ctypes.create_string_buffer('\000' * buf_size)
             nidaq.DAQmxGetErrorString(err, ctypes.byref(buf), buf_size)
             raise RuntimeError('nidaq generated waring %d: %s'%(err, repr(buf.value)))
-
-
-    def createWaveform(self, amp, freq, offset, duration, keeptime, sampleRate):
-        '''create waveform from given parameters'''
-        self.sampleRate = sampleRate
-        t = numpy.arange( 0, duration, 1.0/self.sampleRate )
-        x = numpy.piecewise( t, [t < keeptime, t >= keeptime], [amp, (amp - (amp/(duration- keeptime))*t) ] * (-1) * numpy.sin( 2*numpy.math.pi * freq * t )) + offset
-        self.periodLength = len( x )
-        self.time = t
-
-        '''create Timing and set Waveform''' 
-        self.data = numpy.zeros( (self.periodLength, ), dtype = numpy.float64)
-        self.data = x
-        self.CHK(nidaq.DAQmxCFGSampClkTiming( self.taskHandle, "", float64(self.sampleRate), DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, uInt64(self.periodLength)))
-        self.CHK(nidaq.DAQmxWriteAnalogF64( self.taskHandle, int32(self.periodLength), 0, float64(-1), DAQmx_Val_GroupByChannel, self.data.ctypes.data, None, None))
-        
     
-    def plotWaveform(self):
-        '''use matplotlib'''
-        plt.plot(self.time, self.data)
-        plt.show()
-
-# run method called when Degausser.start() called
     def run(self):
         self.CHK(nidaq.DAQmxStartTask( self.taskHandle ))
-
+        ret_bool = bool32()
+        self.CHK(nidaq.DAQmxIsTaskDone( self.taskHandle, ctypes.byref(ret_bool)))
+        while( ret_bool.value == 0):
+            time.sleep(2)
+            self.CHK(nidaq.DAQmxIsTaskDone( self.taskHandle, ctypes.byref(ret_bool)))
+            #print ret_bool.value
+        time.sleep(2)
+        
     def stop(self):
+        self.running = False
         nidaq.DAQmxStopTask( self.taskHandle )
-
-    def clear(self):
+    
+    def __del__(self):
         nidaq.DAQmxClearTask( self.taskHandle )
 
 
+class Degausser(threading.Thread):
+    def __init__(self, device, chnnr):
+        self.device = device
+        self.chnnr = chnnr
+
+    def createNpWaveform(self, amp, freq, offset, duration, keeptime, sampleRate):
+        '''create waveform from given parameters'''
+        self.sampleRate = sampleRate
+        t = numpy.linspace(0, duration, duration*sampleRate + 1)
+        x = (-1) * numpy.sin( 2*numpy.math.pi * freq * t ) * numpy.piecewise(t, [t<keeptime, t>=keeptime], [amp, lambda t: -((t-keeptime) * amp/(duration-keeptime))+amp])
+        self.periodLength = len( x )
+        self.time = t
+        self.data = numpy.zeros( (self.periodLength, ), dtype = numpy.float64)
+        self.data = x
+
+    def plotWaveform(self):
+        plt.plot(self.time, self.data)
+        plt.show()
+        
+    def playWaveform(self):
+        mythread = WaveformThread(self.device, self.chnnr, self.data, self.sampleRate, self.time)
+        mythread.start()
+        mythread.join()
